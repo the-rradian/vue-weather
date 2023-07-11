@@ -1,10 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
-const apiKey = '91740b6b069953b841b91f7a98eee1ce'
+const apiKey = ''
 const weatherURL = 'https://api.openweathermap.org/data/2.5/weather'
 const cityURL = 'http://api.openweathermap.org/geo/1.0/direct?'
-const mode = "metric"
+let mode = "metric"
 const tempUnit = ref("°C")
 const selectedCity = ref("")
 const weatherData = ref({
@@ -25,16 +25,16 @@ const searchBarIsEmpty = computed(() => {
   return selectedCity.value.trim().length === 0 ? true : false
 })
 
-async function weatherRequest(){
+async function weatherRequest(coordinates){
 
-    const coordinates = await cityRequest()
+    //hit weather API using coordinates passed as parameters
     const apiResponse = await fetch(`${weatherURL}?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${apiKey}&units=${mode}`)
     const apiData = await apiResponse.json()
     console.log(apiData)
-    //weather desc 
+    //weather description
     let weatherText = apiData["weather"][0]["description"]
     weatherData.value.weatherDescription = capitalizeFirstLetter(weatherText)
-    //temperature in Celsius and Fahrenheit
+    //temperature 
     weatherData.value.currentTemp = Math.floor(apiData["main"]["temp"])  
     weatherData.value.feelsLike = Math.floor(apiData["main"]["feels_like"])
     //everything else
@@ -59,7 +59,7 @@ async function cityRequest(){
             latitude : apiData["0"]["lat"],
             longitude : apiData["0"]["lon"]
         }
-        return coordinates
+        weatherRequest(coordinates)
     } else
     console.log("City not found")
 
@@ -73,13 +73,19 @@ function modeSwitch() {
     if (mode === "metric"){
         mode = "imperial"
         tempUnit.value = "°F"
-        //change all temps to °F
-    }
-    if (mode === "imperial"){
+        //change all temps to °F if city has already been selected (data is already on screen)
+        if (weatherData.value.cityName){
+            weatherData.value.currentTemp = Math.floor(convertToFahrenheit(weatherData.value.currentTemp))
+            weatherData.value.feelsLike = Math.floor(convertToFahrenheit(weatherData.value.feelsLike))
+        }
+    } else if (mode === "imperial"){
         mode = "metric"
         tempUnit.value = "°C"
-        //change all temps to °C 
-        // 
+        //change all temps to °C if city has already been selected (data is already on screen)
+        if (weatherData.value.cityName){
+            weatherData.value.currentTemp = Math.floor(convertToCelsius(weatherData.value.currentTemp))
+            weatherData.value.feelsLike = Math.floor(convertToCelsius(weatherData.value.feelsLike))
+        }
     }
 }
 
@@ -96,8 +102,11 @@ function convertToCelsius(temp){
 <template >
     <div class="search">
         <input v-model="selectedCity" class="search-bar" type="text" placeholder="Enter city name" title="Enter city name"/>
-        <button class="button" @click="weatherRequest()" v-bind:disabled="searchBarIsEmpty" title="Search">
+        <button id="search-btn" class="button" @click="weatherRequest()" v-bind:disabled="searchBarIsEmpty" title="Search">
             <img id="search-icon" src="../assets/icons8-search-50.png"/>
+        </button>
+        <button id="toggle-units-btn" class="button" @click="modeSwitch()" title="Toggle imperial or metric units">
+            {{ tempUnit }}
         </button>
     </div>
     <img src="../assets/23527-3-weather.png" width="250" height="250"/>
@@ -128,6 +137,7 @@ function convertToCelsius(temp){
     width: 43px;
     height: 43px;
     margin: 10px;
+    margin-left: 5px;
     border: none;
     border-radius: 50%;
     box-shadow: 2px 2px 1px rgb(80, 80, 80);
@@ -169,7 +179,6 @@ function convertToCelsius(temp){
 #precipiation{
 
     margin-right: 10px;
-
 
 }
 
