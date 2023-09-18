@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
-const apiKey = 'deb1b7f49e2acfcfa7cf786391aa21bf'
+const apiKey = ''
 const weatherURL = 'https://api.openweathermap.org/data/2.5/weather'
 const cityURL = 'http://api.openweathermap.org/geo/1.0/direct?'
 let mode = "metric"
