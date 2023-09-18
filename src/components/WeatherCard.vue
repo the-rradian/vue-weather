@@ -28,8 +28,18 @@ const searchBarIsEmpty = computed(() => {
 async function weatherRequest(coordinates){
 
     //hit weather API using coordinates passed as parameters
-    const apiResponse = await fetch(`${weatherURL}?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${apiKey}&units=${mode}`)
-    const apiData = await apiResponse.json()
+    
+    try {
+        const apiResponse = await fetch(`${weatherURL}?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${apiKey}&units=${mode}`)
+    } catch (error) {
+        console.log(error)
+    }
+
+    try {
+        const apiData = await apiResponse.json()
+    } catch (error) {
+        console.log(error)
+    }
     console.log(apiData)
     //weather description
     let weatherText = apiData["weather"][0]["description"]
@@ -46,9 +56,17 @@ async function weatherRequest(coordinates){
 
 async function cityRequest(){
     //hit city API for the city in search bar
-    const apiResponse = await fetch(`${cityURL}q=${selectedCity.value.trim()}&limit=3&appid=${apiKey}`)
+    try {
+        const apiResponse = await fetch(`${cityURL}q=${selectedCity.value.trim()}&limit=3&appid=${apiKey}`)
+    } catch (error) {
+        console.log(error)
+    }
 
-    const apiData = await apiResponse.json()
+    try {
+        const apiData = await apiResponse.json()
+    } catch (error) {
+        console.log(error)
+    }
     //if city is found, apiData should be populated
     if (apiData){
         //grab city and country code
