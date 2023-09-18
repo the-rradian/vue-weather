@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
-const apiKey = ''
+const apiKey = 'deb1b7f49e2acfcfa7cf786391aa21bf'
 const weatherURL = 'https://api.openweathermap.org/data/2.5/weather'
 const cityURL = 'http://api.openweathermap.org/geo/1.0/direct?'
 let mode = "metric"
@@ -31,26 +31,22 @@ async function weatherRequest(coordinates){
     
     try {
         const apiResponse = await fetch(`${weatherURL}?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${apiKey}&units=${mode}`)
-    } catch (error) {
-        console.log(error)
-    }
-
-    try {
         const apiData = await apiResponse.json()
+        console.log(apiData)
+    //weather description
+        let weatherText = apiData["weather"][0]["description"]
+        weatherData.value.weatherDescription = capitalizeFirstLetter(weatherText)
+        //temperature 
+        weatherData.value.currentTemp = Math.floor(apiData["main"]["temp"])  
+        weatherData.value.feelsLike = Math.floor(apiData["main"]["feels_like"])
+        //everything else
+        weatherData.value.humidity = apiData["main"]["humidity"]
+        weatherData.value.minTemp = apiData["main"]["temp_min"]
+        weatherData.value.maxTempTemp = apiData["main"]["temp_max"]
     } catch (error) {
         console.log(error)
     }
-    console.log(apiData)
-    //weather description
-    let weatherText = apiData["weather"][0]["description"]
-    weatherData.value.weatherDescription = capitalizeFirstLetter(weatherText)
-    //temperature 
-    weatherData.value.currentTemp = Math.floor(apiData["main"]["temp"])  
-    weatherData.value.feelsLike = Math.floor(apiData["main"]["feels_like"])
-    //everything else
-    weatherData.value.humidity = apiData["main"]["humidity"]
-    weatherData.value.minTemp = apiData["main"]["temp_min"]
-    weatherData.value.maxTempTemp = apiData["main"]["temp_max"]
+    
 
 }
 
@@ -58,17 +54,8 @@ async function cityRequest(){
     //hit city API for the city in search bar
     try {
         const apiResponse = await fetch(`${cityURL}q=${selectedCity.value.trim()}&limit=3&appid=${apiKey}`)
-    } catch (error) {
-        console.log(error)
-    }
-
-    try {
         const apiData = await apiResponse.json()
-    } catch (error) {
-        console.log(error)
-    }
-    //if city is found, apiData should be populated
-    if (apiData){
+        if (apiData){
         //grab city and country code
         weatherData.value.cityName = apiData["0"]["name"]
         weatherData.value.countryName = apiData["0"]["country"]
@@ -77,9 +64,16 @@ async function cityRequest(){
             latitude : apiData["0"]["lat"],
             longitude : apiData["0"]["lon"]
         }
-        weatherRequest(coordinates)
-    } else
-    console.log("City not found")
+         weatherRequest(coordinates)
+        } else
+            console.log("City not found")
+        
+    } catch (error) {
+        console.log(error)
+    }
+    //if city is found, apiData should be populated
+    
+    
 
 }
 
@@ -120,7 +114,7 @@ function convertToCelsius(temp){
 <template >
     <div class="search">
         <input v-model="selectedCity" class="search-bar" type="text" placeholder="Enter city name" title="Enter city name"/>
-        <button id="search-btn" class="button" @click="weatherRequest()" v-bind:disabled="searchBarIsEmpty" title="Search">
+        <button id="search-btn" class="button" @click="cityRequest()" v-bind:disabled="searchBarIsEmpty" title="Search">
             <img id="search-icon" src="../assets/icons8-search-50.png"/>
         </button>
         <button id="toggle-units-btn" class="button" @click="modeSwitch()" title="Toggle imperial or metric units">
